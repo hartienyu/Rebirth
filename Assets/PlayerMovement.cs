@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
@@ -12,6 +12,8 @@ public class PlayerMovement : MonoBehaviour
     public float dashSpeed = 15f;
     public float dashDuration = 0.2f;
     public float dashCooldown = 0.8f;
+
+    public Animator anim;
 
     private float turnSmoothVelocity;
     private Vector3 velocity;
@@ -36,6 +38,7 @@ public class PlayerMovement : MonoBehaviour
         if (controller.isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
+            if (anim != null) anim.SetBool("isJumping", false);
         }
 
         if (dashCooldownTimer > 0)
@@ -44,6 +47,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         bool dashInput = false;
+        if (Keyboard.current != null && Keyboard.current.shiftKey.wasPressedThisFrame) dashInput = true;
         if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame) dashInput = true;
 
         if (dashInput && dashCooldownTimer <= 0 && !isDashing)
@@ -51,6 +55,7 @@ public class PlayerMovement : MonoBehaviour
             isDashing = true;
             dashTime = dashDuration;
             dashCooldownTimer = dashCooldown;
+            if (anim != null) anim.SetTrigger("Dash");
         }
 
         float horizontal = 0f;
@@ -63,6 +68,11 @@ public class PlayerMovement : MonoBehaviour
         }
 
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+
+        if (anim != null)
+        {
+            anim.SetFloat("Speed", direction.magnitude);
+        }
 
         if (isDashing)
         {
@@ -79,6 +89,7 @@ public class PlayerMovement : MonoBehaviour
             if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame && controller.isGrounded)
             {
                 velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                if (anim != null) anim.SetBool("isJumping", true);
             }
 
             if (direction.magnitude >= 0.1f)
